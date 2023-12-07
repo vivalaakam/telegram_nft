@@ -1,9 +1,9 @@
 import { ethers, isAddress, JsonRpcProvider } from "ethers";
 import * as crypto from "crypto";
 import { TelegramRequest } from "@/app/types";
-import { ok } from "@/helpers/ok";
-import { downloadFile, getFile, sendMessage } from "@/helpers/tg";
-import { uploadFile } from "@/helpers/ipfs";
+import { ok } from "@/app/helpers/ok";
+import { downloadFile, getFile, sendMessage } from "@/app/helpers/tg";
+import { uploadFile } from "@/app/helpers/ipfs";
 
 const verifierAbi =
   require("@/artifacts/contracts/Verification.sol/Verification.json").abi;
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
   const hash = crypto
     .createHash("sha256")
-    .update(`${process.env.NEXT_SEED}`)
+    .update(`${process.env.NEXT_SEED}:${reqData.message.from.id}`)
     .digest();
 
   let address = null;
@@ -106,6 +106,12 @@ export async function POST(request: Request) {
   );
 
   console.log("mint", mint);
+
+  const respMint = await sendMessage(
+    reqData.message.chat.id,
+    `tx hash: ${mint.tx_hash}`,
+  );
+  console.log("resp mint", respMint);
 
   return ok();
 }
